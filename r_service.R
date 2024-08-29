@@ -61,22 +61,13 @@ validate_r_code <- function(code) {
 
 #* Execute R code
 #* @param code The R code to execute
-#* @param packages The list of allowed packages
 #* @post /execute
-function(code, packages) {
+function(code) {
   if (!validate_r_code(code)) {
     return(list(error = "Invalid or potentially unsafe R code"))
   }
 
   tryCatch({
-    # Load allowed packages
-    for (pkg in packages) {
-      if (!require(pkg, character.only = TRUE)) {
-        install.packages(pkg)
-        library(pkg, character.only = TRUE)
-      }
-    }
-    
     # Execute the code in a safe environment
     safe_env <- new.env(parent = baseenv())
     result <- eval(parse(text = code), envir = safe_env)
@@ -90,12 +81,6 @@ function(code, packages) {
   })
 }
 
-# Run the API with HTTPS
-library(ssl)
+# Run the API
 pr <- plumber::plumb("r_service.R")
-pr$run(host = "0.0.0.0", port = as.numeric(Sys.getenv("PORT")), ssl_key = Sys.getenv("SSL_KEY"), ssl_cert = Sys.getenv("SSL_CERT"))
-
-# Run the API with HTTPS
-library(ssl)
-pr <- plumber::plumb("r_service.R")
-pr$run(host = "0.0.0.0", port = as.numeric(Sys.getenv("PORT")), ssl_key = Sys.getenv("SSL_KEY"), ssl_cert = Sys.getenv("SSL_CERT"))
+pr$run(host = "0.0.0.0", port = as.numeric(Sys.getenv("PORT")))
